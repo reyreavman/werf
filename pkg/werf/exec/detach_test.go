@@ -77,7 +77,15 @@ func findProcessLineByCommand(ctx context.Context, command string) (string, erro
 	b := backoff.NewConstantBackOff(time.Millisecond * 10)
 
 	operation := func() (string, error) {
-		cmd := exec.CommandContext(ctx, "ps", "-eo", "pid,cmd")
+		var cmd *exec.Cmd
+		if runtime.GOOS == "darwin" {
+			// macOS version
+			cmd = exec.CommandContext(ctx, "ps", "-ax", "-o", "pid,command")
+		} else {
+			// Linux version
+			cmd = exec.CommandContext(ctx, "ps", "-eo", "pid,cmd")
+		}
+		//cmd := exec.CommandContext(ctx, "ps", "-eo", "pid,cmd")
 		outBytes, err := cmd.Output()
 		Expect(err).To(Succeed())
 
